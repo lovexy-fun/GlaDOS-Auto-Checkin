@@ -70,7 +70,6 @@ class Spider:
 
         email = self._config['email']
         host = self._config['host']
-        mode = self._config['mode']
         logger.info('向邮箱[%s]发送验证码', email)
         url = 'https://{0}/api/authorization'.format(host)
         payload = {
