@@ -174,7 +174,7 @@ class Spider:
         host = self._config['host']
         try:
             self.__load_cookie()
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             logger.info('[%s]不存在cookie，无需退出', email)
             return
         logger.info('正在进行[%s]账号的退出', email)
