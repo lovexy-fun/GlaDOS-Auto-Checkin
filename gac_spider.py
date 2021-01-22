@@ -11,7 +11,7 @@ from gac_email import read_mailcode
 class Spider:
 
     def __init__(self):
-        self._session = requests.session();
+        self._session = requests.session()
         self._header = {
             'User-Agent' : 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36',
             'Accept': 'application/json',
@@ -174,7 +174,7 @@ class Spider:
         email = self._config['email']
         host = self._config['host']
         try:
-            self.__load_cookie();
+            self.__load_cookie()
         except FileNotFoundError as e:
             logger.info('[%s]不存在cookie，无需退出', email)
             return
