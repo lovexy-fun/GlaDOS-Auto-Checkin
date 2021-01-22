@@ -1,9 +1,11 @@
 import requests
 import os
 import pickle
+import time
 
 from gac_config import config
 from gac_logger import logger
+from gac_email import read_mailcode
 
 
 class Spider:
@@ -20,11 +22,20 @@ class Spider:
         self._cookie_filename = '{0}.cookie'.format(self._config['email'])
 
     def __load_config(self):
+        '''
+        加载配置
+        '''
+
         self._config = {}
         self._config['host'] = config.get('account', 'host')
         self._config['email'] = config.get('account', 'email')
+        self._config['mode'] = config.get('setting', 'mode')
 
     def __save_cookie(self):
+        '''
+        保存cookie
+        '''
+
         directory = os.path.dirname(self._cookie_dir)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -33,6 +44,10 @@ class Spider:
         logger.info('cookie保存成功')
 
     def __load_cookie(self):
+        '''
+        加载本地cookie
+        '''
+
         if not os.path.exists(self._cookie_dir + self._cookie_filename):
             raise FileNotFoundError('Not Found Cookie')
         with open(self._cookie_dir + self._cookie_filename, 'rb') as f:
@@ -40,13 +55,22 @@ class Spider:
         logger.info('cookie加载成功')
 
     def __del_cookie(self):
+        '''
+        删除cookie
+        '''
+
         if os.path.exists(self._cookie_dir + self._cookie_filename):
             os.remove(self._cookie_dir + self._cookie_filename)
         logger.info('cookie删除成功')
 
     def __send_auth_code(self):
+        '''
+        请求邮箱验证码
+        '''
+
         email = self._config['email']
         host = self._config['host']
+        mode = self._config['mode']
         logger.info('向邮箱[%s]发送验证码', email)
         url = 'https://{0}/api/authorization'.format(host)
         payload = {
@@ -58,24 +82,36 @@ class Spider:
         logger.debug('验证码获取响应响应：%s', response)
         if response['code'] == 0:
             logger.info('验证码发送成功')
+            return True
+        else:
+            logger.warn('验证码发送失败')
+            return False
+
+    def __get_mailcode(self):
+        '''
+        获取邮箱验证码
+        '''
+
+        email = self._config['email']
+        mode = self._config['mode']
+        if mode == '0':
             code = input('请输入[{0}]邮箱收到的验证码：'.format(email))
             logger.info('输入的验证码为：%s', code)
             return code
-        else:
-            logger.warn('验证码发送失败')
-            return None
+        elif mode == '1':
+            time.sleep(60)
+            return read_mailcode()
 
     def login(self):
         '''
         登录
-        :return: str
+        :return: bool
         '''
 
-        mailcode = self.__send_auth_code()
-        if mailcode is None:
-            logger.warn("验证码为None")
-            return False
+        if not self.__send_auth_code():
+            return
 
+        mailcode = self.__get_mailcode()
         email = self._config['email']
         host = self._config['host']
         logger.info('正在登录[%s]账号', email)
